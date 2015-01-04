@@ -221,22 +221,6 @@
                     alert("Error! 输入格式：#ffffff");
                     return;
                 }
-                // //获得所选文字并删除
-                // var selection = window.getSelection();
-                // var range = selection.getRangeAt(0);
-                // var str = range.toString();
-                // range.deleteContents();
-                // // alert(selection.anchorNode.nodeName); //获得tag名字
-                // // alert(range.startContainer.parentNode.style.cssText); //获得style
- 
-                // //取得所选文字的Element节点
-                // var elementContainer = range.startContainer.parentNode;
-                // //创建带属性的节点，让文本节点成为其子节点
-                // var textElement = document.createTextNode(str);
-                // var element = document.createElement("span");
-                // element.setAttribute("style", "color: " + colorStr);
-                // element.appendChild(textElement);
-                // range.insertNode(element);
                 var selection = window.getSelection();
                 var attrStr = "color:" + colorStr;
                 setTextNodeAttrbute(selection, attrStr);
@@ -251,16 +235,6 @@
                     return;
                 }
                 var selection = window.getSelection();
-                // var range = selection.getRangeAt(0);
-                // var str = range.toString();
-                // range.deleteContents();
-                // var elementContainer = range.startContainer.parentNode;
-                // //创建带属性的节点，让文本节点成为其子节点
-                // var textElement = document.createTextNode(str);
-                // var element = document.createElement("span");
-                // element.setAttribute("style", "font-size:" + sizeStr + "px");
-                // element.appendChild(textElement);
-                // range.insertNode(element);
                 var attrStr = "font-size:" + sizeStr + "px";
                 setTextNodeAttrbute(selection, attrStr);
             };
@@ -332,7 +306,7 @@
                 alert(attrStr);
             }
 
-            //////////////////////////////导出、导入///////////////////////////////
+            //////////////////////////////导出、导入/////////////////////////////////
             // 将textEditor中html写入textarea
             function exportToTextarea() {
                 var textEditorNode = document.getElementById("textEditor");
