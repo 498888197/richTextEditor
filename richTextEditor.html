@@ -88,8 +88,6 @@
         </div>
         <!-- javaScript -->
         <script>
-            //所有关心的属性
-            // var AllAttrbute = ["font-size", "color", "text-shadow", "-webkit-text-stroke", "font-family"];
             //得到第一个父 元素 节点
             function getAncestorElementNode(node) {
                 var elementNode = node;
@@ -130,7 +128,30 @@
                 return totalAttr;
             }
 
-            //给所选文本设置属性 fix me 没考虑跨标签选的情况
+            //跨节点选取时, 得到所选节点
+            function getSelectNode(range) {
+                var textFragment = range.cloneContents();
+                var textFragmentChildNodes = textFragment.childNodes;
+                alert(textFragmentChildNodes.length);
+                for (var count = 0; count < textFragmentChildNodes.length; count++) {
+                    if (textFragmentChildNodes[count].nodeType == 3) {
+                        alert(textFragmentChildNodes[count].nodeValue);
+                    } else if (textFragmentChildNodes[count].nodeType == 1) {
+                        alert(textFragmentChildNodes[count].getAttribute("style"));
+                    }
+                }
+            }
+
+            //node外设置属性,里面有这个属性则干掉
+            function setOutAttr(attrStr, node){
+
+            }
+
+            //删旧的,加新的
+            function deleteSelectAndAddNewNode(range, newNode) {
+                //顶头的话，多删除一个头属性
+            }
+            //给所选文本设置属性. fix me 没考虑跨标签选的情况
             function setTextNodeAttrbute(selection, attrStr) {
                 var range = selection.getRangeAt(0);
                 var selectStr = range.toString();
@@ -147,36 +168,44 @@
                     alert("啥也没选,返回");
                     return;
                 } 
-                //所选的这个文本已经有其他属性了，加在这个属性上
-                if (range.startOffset == 0 && range.endOffset == endContainer.nodeValue.length) {
-                    var styleStr = endContainer.parentNode.getAttribute("style");
-                    var attrName = attrStr.substring(0, attrStr.indexOf(":"));
-                    alert("attrName:" + attrName + " styleStr:" + styleStr);
-                    //第一次添加这个属性
-                    var index = styleStr.indexOf(attrName);
-                    if (index == -1) {
-                        styleStr += ";" + attrStr;
-                    } else { //替换这个属性的字符串
-                        var sub = styleStr.substring(index);
-                        if (sub.indexOf(";") == -1) { //这个是最后一个属性了，后面没有;了
-                            alert("no");
-                            styleStr = styleStr.replace(new RegExp(attrName + ".*"), attrStr);
-                        } else {
-                            alert("yes");
-                            styleStr = styleStr.replace(new RegExp(attrName + ".*;"), attrStr + ";");
+                if (startContainer != endContainer) { //跨标签选择
+                    alert("跨标签了");
+                    var selectNode = getSelectNode(range);
+                    var newNode = setOutAttr(attrStr, selectNode);
+                    deleteSelectAndAddNewNode(range, newNode);
+                } else { //没有跨标签
+                    //所选的这个文本已经有其他属性了，加在这个属性上
+                    if (range.startOffset == 0 
+                        && range.endOffset == endContainer.nodeValue.length 
+                        //第一次选择所有内容
+                        && startContainer.parentNode != document.getElementById("textEditor")
+                        ) {
+                        var styleStr = endContainer.parentNode.getAttribute("style");
+                        var attrName = attrStr.substring(0, attrStr.indexOf(":"));
+                        //第一次添加这个属性
+                        var index = styleStr.indexOf(attrName);
+                        if (index == -1) {
+                            styleStr += ";" + attrStr;
+                        } else { //替换这个属性的字符串
+                            var sub = styleStr.substring(index);
+                            if (sub.indexOf(";") == -1) { //这个是最后一个属性了，后面没有;了
+                                styleStr = styleStr.replace(new RegExp(attrName + ".*"), attrStr);
+                            } else {
+                                styleStr = styleStr.replace(new RegExp(attrName + ".*;"), attrStr + ";");
+                            }
                         }
-                        alert(styleStr);
+                        endContainer.parentNode.setAttribute("style", styleStr);
+                    } else {
+                        range.deleteContents();
+                        var textElement = document.createTextNode(selectStr);
+                        var element = document.createElement("span");
+                        element.setAttribute("style", attrStr);
+                        element.appendChild(textElement);
+                        range.insertNode(element);
                     }
-                    endContainer.parentNode.setAttribute("style", styleStr);
-                } else {
-                    range.deleteContents();
-                    var textElement = document.createTextNode(selectStr);
-                    var element = document.createElement("span");
-                    element.setAttribute("style", attrStr);
-                    element.appendChild(textElement);
-                    range.insertNode(element);
                 }
             }
+
             //#aabbcc to rgb(x, y, z) 
             function toRGBFormat(str) {
                 var rStr = str.substring(1, 3);
@@ -299,11 +328,7 @@
             function setPic(){
                 var selection = window.getSelection();
                 var range = selection.getRangeAt(0);
-                var endContainer = range.endContainer;
-                var element = getAncestorElementNode(endContainer);
-                // alert(element.nodeName);
-                var attrStr = getStyleAttrFromAncestor(endContainer);
-                alert(attrStr);
+                getSelectNode(range);
             }
 
             //////////////////////////////导出、导入/////////////////////////////////
