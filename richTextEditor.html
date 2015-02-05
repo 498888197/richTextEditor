@@ -1,7 +1,7 @@
 <!-- 
     Author:guanfeng@playcrab.com
     Time:2015.01.02
-    Description:策划使用的富文本格式生成工具
+    Description:策划使用的富文本格式生成工具 
  -->
 <!DOCTYPE html>
 <html lang = "en">
@@ -12,7 +12,7 @@
             body {
                 font-size: 20px;
                 color: #000000;
-                font-family: "Cambria", "arial", sans-serif;
+                font-family:"arial", sans-serif;
             }
             /*编辑框样式*/
             #textEditor {
@@ -26,7 +26,7 @@
             }
         </style>
     </head>
-    <body>
+    <body id = "bodyRoot">
         <!-- 文本设置button -->
         <div class = "buttonToSetFont">
             <!-- 字体大小 -->
@@ -42,11 +42,13 @@
             <input id = "inputFontColor" type = "text" style = "width:70px; height:10px"></input>
             <span style = "font-size: 6px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
             <!-- 字体 -->
-            <button type = "button" onclick = "setTextFont();">
+            <button type = "button" onclick = "setTextFont();" disabled = "disabled">
                 字体
             </button>
-            <input type = "text" style = "width:70px; height:10px"></input>
-            <span style = "font-size: 6px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <select id = "textFont">
+                <option>默认字体</option>
+                <option>DFYuanW7-GB2312</option>
+            </select>
              
             <div></div>
             <!-- 阴影 -->
@@ -68,10 +70,12 @@
             <button type = "button" onclick = "setPic();">
                 插入图片
             </button>
+             <input id = "picName" type = "text" style = "width:150px; height:10px" disabled = "true"></input>
             <span style = "font-size: 6px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
         <!-- 文本输入框 -->
-        <div id = "textEditor" onkeypress = "return onkeypresss(event)"  contenteditable = "true">策划使用的富文本格式生成工具</div>
+        <div id = "textEditor" onkeypress = "return onkeypresss(event)" 
+            contenteditable = "true" style = "font-size:30px; color:#000000;">策划使用的富文本格式生成工具</div> 
         <!-- 导出富文本格式 或 根据富文本格式设置html输入框内文本 -->
         <div class = "exportOrImportButton">
             <button type = "button" onClick = "exportToTextarea();">
@@ -103,16 +107,16 @@
                 var arrayRet = str.split(";");
                 return arrayRet;
             }
-            //html属性有继承性，获得属于其的所有属性str(textEditor为止)
+            //html属性有继承性，获得所有属性str(textEditor为止)
             function getStyleAttrFromAncestor(textNode) {
                 var elementNode = getAncestorElementNode(textNode);
                 var totalAttr = "";
-                while (elementNode.getAttribute("id") != "textEditor") {
+                while (elementNode.getAttribute("id") != "bodyRoot") {
                     var currAttrStr = elementNode.getAttribute("style");
                     if (currAttrStr != null) {
                         var currAttrArray = getAttrArray(currAttrStr);
                         for (var i = 0; i < currAttrArray.length; i++) {
-                            var index = currAttrArray[i].search(/;/);
+                            var index = currAttrArray[i].search(/:/);
                             var attr = currAttrArray[i].substring(0, index);
                             if (!totalAttr.match("/" + attr + "/")) {
                                 if (totalAttr == "") {
@@ -128,29 +132,6 @@
                 return totalAttr;
             }
 
-            //跨节点选取时, 得到所选节点
-            function getSelectNode(range) {
-                var textFragment = range.cloneContents();
-                var textFragmentChildNodes = textFragment.childNodes;
-                alert(textFragmentChildNodes.length);
-                for (var count = 0; count < textFragmentChildNodes.length; count++) {
-                    if (textFragmentChildNodes[count].nodeType == 3) {
-                        alert(textFragmentChildNodes[count].nodeValue);
-                    } else if (textFragmentChildNodes[count].nodeType == 1) {
-                        alert(textFragmentChildNodes[count].getAttribute("style"));
-                    }
-                }
-            }
-
-            //node外设置属性,里面有这个属性则干掉
-            function setOutAttr(attrStr, node){
-
-            }
-
-            //删旧的,加新的
-            function deleteSelectAndAddNewNode(range, newNode) {
-                //顶头的话，多删除一个头属性
-            }
             //给所选文本设置属性. fix me 没考虑跨标签选的情况
             function setTextNodeAttrbute(selection, attrStr) {
                 var range = selection.getRangeAt(0);
@@ -158,21 +139,20 @@
                 var startContainer = range.startContainer;
                 var endContainer = range.endContainer;
                 var totalAttr = getStyleAttrFromAncestor(endContainer);
+
+                // alert(totalAttr);
                 //有这个属性了，啥也不做
-                if (totalAttr != ""  && totalAttr.indexOf("/" + attrStr + "/") != -1) {
+                if (totalAttr != ""  && totalAttr.indexOf(attrStr) != -1) {
                     alert("有这个属性了，啥也不做");
                     return;
                 }
                 //啥也没选,返回
                 if (selectStr == "") {
-                    alert("啥也没选,返回");
+                    alert("啥也没选");
                     return;
                 } 
                 if (startContainer != endContainer) { //跨标签选择
-                    alert("跨标签了");
-                    var selectNode = getSelectNode(range);
-                    var newNode = setOutAttr(attrStr, selectNode);
-                    deleteSelectAndAddNewNode(range, newNode);
+                    alert("文本选择跨标签，暂不支持跨标签设置");
                 } else { //没有跨标签
                     //所选的这个文本已经有其他属性了，加在这个属性上
                     if (range.startOffset == 0 
@@ -231,12 +211,14 @@
                 }               
             }
             //输入回行,换成<br>.导出时换成<br></br>
-            function onkeypresss(event){    
-                if (event.keyCode==13) {    
+            function onkeypresss(event){ 
+                var isLastPos = false;   
+                // todo 最后则
+                if (event.keyCode == 13 && isLastPos == true) {    
                     var selection = window.getSelection();
                     var range = selection.getRangeAt(0);
-                    var element = document.createElement("br");
-                    range.insertNode(element);
+                    var br = document.createElement("br"); 
+                    range.insertNode(br);
                     return false;    
                 }
             } 
@@ -245,7 +227,6 @@
                 //获得input框内容
                 var inputElement = document.getElementById("inputFontColor");
                 var colorStr = inputElement.value;
-                //todo 正则表达式检测
                 if (isColorFormat(colorStr) == false) {
                     alert("Error! 输入格式：#ffffff");
                     return;
@@ -267,11 +248,11 @@
                 var attrStr = "font-size:" + sizeStr + "px";
                 setTextNodeAttrbute(selection, attrStr);
             };
- 
-            function getTextEditorText() {
-                var textEditorNode = document.getElementById("textEditor");
-                 
-            };
+
+            //设置字体
+            function setTextFont(){
+                //"华康圆体W7-GBK";//"DFPHaiBaoW12-B5" //"文鼎特圓簡"// //"文鼎特圓簡"//"华康圆体W7-GBK"
+            }
 
             //设置字体阴影
             function setShadow() {
@@ -285,20 +266,11 @@
                     alert("Error! 输入格式：#ffffff");
                     return;
                 }
-             
                 var selection = window.getSelection();
-                var range = selection.getRangeAt(0);
-                var str = range.toString();
-                range.deleteContents();
-                var elementContainer = range.startContainer.parentNode;
-                 
-                var textElement = document.createTextNode(str);
-                var element = document.createElement("span");
-                element.setAttribute("style", "text-shadow:" + shadowSize +
-                    "px " + shadowSize + "px" + shadowColor);
-                element.appendChild(textElement);
-                range.insertNode(element);
+                var attrStr = "text-shadow:" + shadowSize + "px " + shadowSize + "px " + shadowColor
+                setTextNodeAttrbute(selection, attrStr);
             };
+
             //设置字体描边
             function setOutLine() {
                 var outlineSize = document.getElementById("inputOutLineSize").value;
@@ -326,18 +298,28 @@
             }
             //设置图片
             function setPic(){
-                var selection = window.getSelection();
-                var range = selection.getRangeAt(0);
-                getSelectNode(range);
+                var textEditorNode = document.getElementById("textEditor")
+                var pos = getCursortPosition(textEditorNode);
+                alert(pos);
             }
-
             //////////////////////////////导出、导入////////////////////////////////////
             // 将textEditor中html写入textarea
             function exportToTextarea() {
                 var textEditorNode = document.getElementById("textEditor");
                 var textHTML = textEditorNode.innerHTML;
-                //通过正则把&nbsp;换成" " , &lt;换成<, &gt;换成>
-                // todo
+                /* 
+                    为了方便lua解析
+                    1.&lt;换成<, &gt;换成>
+                    2.<br>换成<br></br>
+                    3.开头加<span style = ""> 结尾加</span>
+                */
+                //&lt;换成<, &gt;换成>
+                textHTML = textHTML.replace(new RegExp("&lt;", "gm"), "<");
+                textHTML = textHTML.replace(new RegExp("&gt;", "gm"), ">");
+                //<br>换成<br></br>
+                textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
+                //开头加<span style = ""> 结尾加</span>
+                textHTML = "<span style = \"\">" + textHTML + "</span>";
                 var textAreaNode = document.getElementById("textarea");
                 textAreaNode.value = textHTML;
             };
@@ -346,11 +328,22 @@
             function ImportFromTextarea() {
                 var textAreaNode = document.getElementById("textarea");
                 var textHTML = textAreaNode.value;
-                //通过正则把" "换成&nbsp; , <换成&lt; , >换成&gt;
-                // todo
+                /*
+                    让html能解析
+                    1.<br></br>换成<br>
+                    2.去掉开头<span style = ""> 去掉结尾</span>
+                */
+                //<br></br>换成<br>
+                textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
+                //去掉开头<span style = ""> 去掉结尾</span>
+                textHTML = textHTML.replace(new RegExp('<span style = "">', "gm"), "");
+                var endPos = textHTML.lastIndexOf("</span>");
+                textHTML = textHTML.substring(0, endPos);
                 var textEditorNode = document.getElementById("textEditor");
                 textEditorNode.innerHTML = textHTML;
             };
+            //获得光标位置
+
         </script>
     </body>
 <html>
