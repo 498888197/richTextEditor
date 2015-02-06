@@ -371,7 +371,7 @@
                 textHTML = textHTML.replace(new RegExp("&gt;", "gm"), ">");
                 //<br>换成<br></br>
                 textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
-                //开头加<span style = ""> 结尾加</span>
+                //开头加<span style = "font-size:20px; color:#000000"> 结尾加</span>
                 textHTML = "<span style = \"font-size:20px; color:#000000\">" + textHTML + "</span>";
                 var textAreaNode = document.getElementById("textarea");
                 textAreaNode.value = textHTML;
@@ -408,12 +408,12 @@
                 /*
                     让html能解析
                     1.<br></br>换成<br>
-                    2.去掉开头<span style = ""> 去掉结尾</span>
+                    2.去掉开头<span style = "font-size:30px; color:#000000"> 去掉结尾</span>
                 */
                 //<br></br>换成<br>
                 textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
                 //去掉开头<span style = ""> 去掉结尾</span>
-                textHTML = textHTML.replace(new RegExp('<span style = "font-size:30px; color:#000000">', "gm"), "");
+                textHTML = textHTML.replace(new RegExp('<span style = "font-size:20px; color:#000000">', "gm"), "");
                 var endPos = textHTML.lastIndexOf("</span>");
                 textHTML = textHTML.substring(0, endPos);
                 var textEditorNode = document.getElementById("textEditor");
