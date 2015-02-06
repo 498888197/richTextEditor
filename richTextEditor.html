@@ -2,6 +2,14 @@
     Author:guanfeng@playcrab.com
     Time:2015.01.02
     Description:策划使用的富文本格式生成工具 
+    todo：
+        1. 颜色色盘
+        2. 插入图片
+        3. 最后换行
+        4. 跨文本选择，比较有难度，看需求
+        5. 重复标签整合
+
+        100.整理代码
  -->
 <!DOCTYPE html>
 <html lang = "en">
@@ -70,12 +78,17 @@
             <button type = "button" onclick = "setPic();">
                 插入图片
             </button>
-             <input id = "picName" type = "text" style = "width:150px; height:10px" disabled = "true"></input>
+            <input id = "picName" type = "text" style = "width:150px; height:10px" disabled = "true"></input>
             <span style = "font-size: 6px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <div></div>
+            <button type = "button" onclick = "showTextDetail();">
+                查看所选文本信息
+            </button>
+            <input id = "textDetail" type = "text" style = "width:500px; height:10px" disabled = "true"></input>
         </div>
         <!-- 文本输入框 -->
         <div id = "textEditor" onkeypress = "return onkeypresss(event)" 
-            contenteditable = "true" style = "font-size:30px; color:#000000;">策划使用的富文本格式生成工具</div> 
+            contenteditable = "true" style = "font-size:20px;color:#000000">策划使用的富文本格式生成工具</div> 
         <!-- 导出富文本格式 或 根据富文本格式设置html输入框内文本 -->
         <div class = "exportOrImportButton">
             <button type = "button" onClick = "exportToTextarea();">
@@ -118,7 +131,7 @@
                         for (var i = 0; i < currAttrArray.length; i++) {
                             var index = currAttrArray[i].search(/:/);
                             var attr = currAttrArray[i].substring(0, index);
-                            if (!totalAttr.match("/" + attr + "/")) {
+                            if (!totalAttr.match(new RegExp(attr, "g"))) {
                                 if (totalAttr == "") {
                                     totalAttr += currAttrArray[i];
                                 } else {
@@ -131,7 +144,16 @@
                 }
                 return totalAttr;
             }
-
+            //判断是否跨标签了 true就是跨了
+            function isSelectTwoMoreLabel(range) {
+                var startContainer = range.startContainer;
+                var endContainer = range.endContainer;
+                if (startContainer != endContainer) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
             //给所选文本设置属性. fix me 没考虑跨标签选的情况
             function setTextNodeAttrbute(selection, attrStr) {
                 var range = selection.getRangeAt(0);
@@ -139,19 +161,17 @@
                 var startContainer = range.startContainer;
                 var endContainer = range.endContainer;
                 var totalAttr = getStyleAttrFromAncestor(endContainer);
-
-                // alert(totalAttr);
                 //有这个属性了，啥也不做
                 if (totalAttr != ""  && totalAttr.indexOf(attrStr) != -1) {
-                    alert("有这个属性了，啥也不做");
+                    // alert("有这个属性了，啥也不做");
                     return;
                 }
                 //啥也没选,返回
                 if (selectStr == "") {
-                    alert("啥也没选");
+                    alert("你啥也没选!");
                     return;
                 } 
-                if (startContainer != endContainer) { //跨标签选择
+                if (isSelectTwoMoreLabel(range) == true) { //跨标签选择
                     alert("文本选择跨标签，暂不支持跨标签设置");
                 } else { //没有跨标签
                     //所选的这个文本已经有其他属性了，加在这个属性上
@@ -210,16 +230,59 @@
                     return true;
                 }               
             }
+            //得到所有文本节点
+            function getAllTextElement(root) {
+                var allTextElement = new Array();
+                for (var i = 0; i < (root.childNodes).length; i++) {
+                    if (root.childNodes[i].nodeType == 3) { // 是文本节点
+                        allTextElement.push(root.childNodes[i]);
+                    } else if (root.childNodes[i].nodeType == 1) { //是元素节点,递归
+                        var texts = getAllTextElement(root.childNodes[i]);
+                        if (texts.length != 0) {
+                            allTextElement = allTextElement.concat(texts);
+                        }
+                    }
+                }
+                return allTextElement;
+            }
+
+            //判断是否是最后一个Text节点
+            function isLastTextElement(textElement) {
+                //不是元素节点直接返回
+                if (textElement.nodeType != 3) {
+                    return false;
+                }
+                var allTextElement = getAllTextElement(document.getElementById("textEditor"));
+                if (textElement == allTextElement[allTextElement.length - 1]) {
+                    return true; 
+                } else {
+                    return false;
+                }
+            }
+
             //输入回行,换成<br>.导出时换成<br></br>
             function onkeypresss(event){ 
-                var isLastPos = false;   
-                // todo 最后则
-                if (event.keyCode == 13 && isLastPos == true) {    
+                var isLastText = false;                 
+                //是回行否 keyCode == 13
+                if (event.keyCode == 13) {
+                    //没有文本节点(开始就来个回行)，直接返回
+                    if (getAllTextElement(document.getElementById("textEditor")).length == 0) {
+                        return false
+                    }
                     var selection = window.getSelection();
-                    var range = selection.getRangeAt(0);
-                    var br = document.createElement("br"); 
-                    range.insertNode(br);
-                    return false;    
+                    if ((isLastTextElement(selection.anchorNode) == true) //是最后一个Text元素
+                        && (selection.anchorNode.nodeValue.length == selection.anchorOffset)//是Text文本的最后
+                        ) {
+                        isLastText = true;
+                    }
+                    if (isLastText == false) {  //不是最后则加<br>  
+                        var range = selection.getRangeAt(0);
+                        var br = document.createElement("br"); 
+                        range.insertNode(br);
+                        return false;    
+                    } else { //不能在最后加回行
+                        return false;
+                    }
                 }
             } 
             //设置颜色 
@@ -284,23 +347,13 @@
                     return;
                 }
                 var selection = window.getSelection();
-                var range = selection.getRangeAt(0);
-                var str = range.toString();
-                range.deleteContents();
-                var elementContainer = range.startContainer.parentNode;
-                 
-                var textElement = document.createTextNode(str);
-                var element = document.createElement("span");
-                element.setAttribute("style", "-webkit-text-stroke:" + outlineSize +
-                    "px " + outlineColor);
-                element.appendChild(textElement);
-                range.insertNode(element);
+                var attrStr = "-webkit-text-stroke:" + outlineSize + "px " + outlineColor;
+                setTextNodeAttrbute(selection, attrStr);
             }
-            //设置图片
+            //设置图片, 没有实现呢，用作测试
             function setPic(){
-                var textEditorNode = document.getElementById("textEditor")
-                var pos = getCursortPosition(textEditorNode);
-                alert(pos);
+                // var selection = window.getSelection();
+                // alert(selection.anchorOffset);
             }
             //////////////////////////////导出、导入////////////////////////////////////
             // 将textEditor中html写入textarea
@@ -311,7 +364,7 @@
                     为了方便lua解析
                     1.&lt;换成<, &gt;换成>
                     2.<br>换成<br></br>
-                    3.开头加<span style = ""> 结尾加</span>
+                    3.开头加<span style = "font-size:20px; color:#000000"> 结尾加</span> 默认字号20，默认颜色#000000
                 */
                 //&lt;换成<, &gt;换成>
                 textHTML = textHTML.replace(new RegExp("&lt;", "gm"), "<");
@@ -319,11 +372,35 @@
                 //<br>换成<br></br>
                 textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
                 //开头加<span style = ""> 结尾加</span>
-                textHTML = "<span style = \"\">" + textHTML + "</span>";
+                textHTML = "<span style = \"font-size:20px; color:#000000\">" + textHTML + "</span>";
                 var textAreaNode = document.getElementById("textarea");
                 textAreaNode.value = textHTML;
             };
- 
+            // 显示所选文本信息，字号，颜色，字体信息等
+            function showTextDetail(){
+                var selection = window.getSelection();
+                var selectStr = selection.toString();
+                var textLabel = document.getElementById("textDetail");
+
+                if (selectStr == "") {
+                    textLabel.value = "";
+                    alert("你啥也没选!")
+                    return;
+                }
+                if (isSelectTwoMoreLabel(selection.getRangeAt(0))) {
+                    textLabel.value = "";
+                    alert("文本选择跨标签，暂不支持跨标签设置");
+                    return;
+                }
+                var detailStr = "content:" + selectStr + "; ";
+                //得到得到所有属性
+                var totalAttr = getStyleAttrFromAncestor(selection.anchorNode);
+                for (var i = 0; i < totalAttr.length; i++) {
+                    detailStr = detailStr + totalAttr[i];
+                }
+
+                textLabel.value = detailStr;
+            }
             // 根据textarea内容设置textEditor内容
             function ImportFromTextarea() {
                 var textAreaNode = document.getElementById("textarea");
@@ -336,13 +413,12 @@
                 //<br></br>换成<br>
                 textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
                 //去掉开头<span style = ""> 去掉结尾</span>
-                textHTML = textHTML.replace(new RegExp('<span style = "">', "gm"), "");
+                textHTML = textHTML.replace(new RegExp('<span style = "font-size:30px; color:#000000">', "gm"), "");
                 var endPos = textHTML.lastIndexOf("</span>");
                 textHTML = textHTML.substring(0, endPos);
                 var textEditorNode = document.getElementById("textEditor");
                 textEditorNode.innerHTML = textHTML;
             };
-            //获得光标位置
 
         </script>
     </body>
