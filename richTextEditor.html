@@ -6,8 +6,8 @@
         1. 颜色色盘
         2. 插入图片
         3. 最后换行
-        4. 跨文本选择，比较有难度，看需求
-        5. 重复标签整合  
+        4. 跨文本选择，比较有难度
+        5. 重复标签整合，比较有难度  
 
         100.整理代码
  -->
@@ -355,27 +355,7 @@
                 // var selection = window.getSelection();
                 // alert(selection.anchorOffset);
             }
-            //////////////////////////////导出、导入////////////////////////////////////
-            // 将textEditor中html写入textarea
-            function exportToTextarea() {
-                var textEditorNode = document.getElementById("textEditor");
-                var textHTML = textEditorNode.innerHTML;
-                /* 
-                    为了方便lua解析
-                    1.&lt;换成<, &gt;换成>
-                    2.<br>换成<br></br>
-                    3.开头加<span style = "font-size:20px; color:#000000"> 结尾加</span> 默认字号20，默认颜色#000000
-                */
-                //&lt;换成<, &gt;换成>
-                textHTML = textHTML.replace(new RegExp("&lt;", "gm"), "<");
-                textHTML = textHTML.replace(new RegExp("&gt;", "gm"), ">");
-                //<br>换成<br></br>
-                textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
-                //开头加<span style = "font-size:20px; color:#000000"> 结尾加</span>
-                textHTML = "<span style = \"font-size:20px; color:#000000\">" + textHTML + "</span>";
-                var textAreaNode = document.getElementById("textarea");
-                textAreaNode.value = textHTML;
-            };
+
             // 显示所选文本信息，字号，颜色，字体信息等
             function showTextDetail(){
                 var selection = window.getSelection();
@@ -401,6 +381,24 @@
 
                 textLabel.value = detailStr;
             }
+
+            //////////////////////////////导出、导入////////////////////////////////////
+            // 将textEditor中html写入textarea
+            function exportToTextarea() {
+                var textEditorNode = document.getElementById("textEditor");
+                var textHTML = textEditorNode.innerHTML;
+                /* 
+                    1.<br>换成<br></br>
+                    2.开头加<span style = "font-size:20px; color:#000000"> 结尾加</span> 默认字号20，默认颜色#000000
+                */
+                //<br>换成<br></br>
+                textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
+                //开头加<span style = "font-size:20px; color:#000000"> 结尾加</span>
+                textHTML = "<span style = \"font-size:20px; color:#000000\">" + textHTML + "</span>";
+                var textAreaNode = document.getElementById("textarea");
+                textAreaNode.value = textHTML;
+            };
+
             // 根据textarea内容设置textEditor内容
             function ImportFromTextarea() {
                 var textAreaNode = document.getElementById("textarea");
