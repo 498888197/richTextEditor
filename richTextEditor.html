@@ -88,7 +88,7 @@
         </div>
         <!-- 文本输入框 -->
         <div id = "textEditor" onkeypress = "return onkeypresss(event)" 
-            contenteditable = "true" style = "font-size:20px;color:#000000">策划使用的富文本格式生成工具</div> 
+            contenteditable = "true" style = "font-size:20px;color:#000000"></div> 
         <!-- 导出富文本格式 或 根据富文本格式设置html输入框内文本 -->
         <div class = "exportOrImportButton">
             <button type = "button" onClick = "exportToTextarea();">
@@ -390,11 +390,16 @@
                 /* 
                     1.<br>换成<br></br>
                     2.开头加<span style = "font-size:20px; color:#000000"> 结尾加</span> 默认字号20，默认颜色#000000
+                    3.符号<>里的 " 换成 ' 否则lua里字符串 str = " "" " 这样是错的。 
                 */
                 //<br>换成<br></br>
                 textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
                 //开头加<span style = "font-size:20px; color:#000000"> 结尾加</span>
-                textHTML = "<span style = \"font-size:20px; color:#000000\">" + textHTML + "</span>";
+                textHTML = "<span style = 'font-size:20px; color:#000000'>" + textHTML + "</span>";
+                //符号<>里的 " 换成 '
+                textHTML = textHTML.replace(new RegExp("\">", "gm"), "'>");
+                textHTML = textHTML.replace(new RegExp("\"font-size", "gm"), "'font-size");
+
                 var textAreaNode = document.getElementById("textarea");
                 textAreaNode.value = textHTML;
             };
@@ -407,13 +412,18 @@
                     让html能解析
                     1.<br></br>换成<br>
                     2.去掉开头<span style = "font-size:30px; color:#000000"> 去掉结尾</span>
+                    3.符号<>里的 ' 换成 "
                 */
                 //<br></br>换成<br>
                 textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
                 //去掉开头<span style = ""> 去掉结尾</span>
-                textHTML = textHTML.replace(new RegExp('<span style = "font-size:20px; color:#000000">', "gm"), "");
+                textHTML = textHTML.replace(new RegExp("<span style = 'font-size:20px; color:#000000'>", "gm"), "");
                 var endPos = textHTML.lastIndexOf("</span>");
                 textHTML = textHTML.substring(0, endPos);
+                //符号<>里的 ' 换成 "
+                textHTML = textHTML.replace(new RegExp("'>", "gm"), "\">");
+                textHTML = textHTML.replace(new RegExp("'font-size", "gm"), "\"font-size");
+
                 var textEditorNode = document.getElementById("textEditor");
                 textEditorNode.innerHTML = textHTML;
             };
