@@ -354,6 +354,13 @@
             function setPic(){
                 // var selection = window.getSelection();
                 // alert(selection.anchorOffset);
+
+                var str = "<span style='font-size:20px; color:#000000'><font color='#2b1c00'><span style='font-size: 24px;'>范德萨发</span></span>";
+                str = str.replace(new RegExp("<font[^>]*?>", "gm"), "");
+
+                // var str = "ccaaaa";
+                // str = str.replace(new RegExp("cca*", "gm"), "b");
+                alert(str);
             }
 
             // 显示所选文本信息，字号，颜色，字体信息等
@@ -391,14 +398,18 @@
                     1.<br>换成<br></br>
                     2.开头加<span style = "font-size:20px; color:#000000"> 结尾加</span> 默认字号20，默认颜色#000000
                     3.符号<>里的 " 换成 ' 否则lua里字符串 str = " "" " 这样是错的。 
+                    4.删除无用的 <font color="#2b1c00'> 和 </font>
                 */
                 //<br>换成<br></br>
                 textHTML = textHTML.replace(new RegExp("<br>", "gm"), "<br></br>");
                 //开头加<span style = "font-size:20px; color:#000000"> 结尾加</span>
-                textHTML = "<span style = 'font-size:20px; color:#000000'>" + textHTML + "</span>";
+                textHTML = "<span style='font-size:20px; color:#000000'>" + textHTML + "</span>";
                 //符号<>里的 " 换成 '
                 textHTML = textHTML.replace(new RegExp("\">", "gm"), "'>");
-                textHTML = textHTML.replace(new RegExp("\"font-size", "gm"), "'font-size");
+                textHTML = textHTML.replace(new RegExp("=\"", "gm"), "='");
+                //删除无用的 <font color="#2b1c00'> 和 </font>
+                textHTML = textHTML.replace(new RegExp("</font>", "gm"), "");
+                textHTML = textHTML.replace(new RegExp("<font[^>]*?>", "gm"), "");
 
                 var textAreaNode = document.getElementById("textarea");
                 textAreaNode.value = textHTML;
@@ -415,14 +426,14 @@
                     3.符号<>里的 ' 换成 "
                 */
                 //<br></br>换成<br>
-                textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
+                // textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
                 //去掉开头<span style = ""> 去掉结尾</span>
-                textHTML = textHTML.replace(new RegExp("<span style = 'font-size:20px; color:#000000'>", "gm"), "");
+                textHTML = textHTML.replace(new RegExp("<span style='font-size:20px; color:#000000'>", "gm"), "");
                 var endPos = textHTML.lastIndexOf("</span>");
                 textHTML = textHTML.substring(0, endPos);
                 //符号<>里的 ' 换成 "
                 textHTML = textHTML.replace(new RegExp("'>", "gm"), "\">");
-                textHTML = textHTML.replace(new RegExp("'font-size", "gm"), "\"font-size");
+                textHTML = textHTML.replace(new RegExp("='", "gm"), "=\"");
 
                 var textEditorNode = document.getElementById("textEditor");
                 textEditorNode.innerHTML = textHTML;
