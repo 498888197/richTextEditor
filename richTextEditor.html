@@ -426,7 +426,7 @@
                     3.符号<>里的 ' 换成 "
                 */
                 //<br></br>换成<br>
-                // textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
+                textHTML = textHTML.replace(new RegExp("<br></br>", "gm"), "<br>");
                 //去掉开头<span style = ""> 去掉结尾</span>
                 textHTML = textHTML.replace(new RegExp("<span style='font-size:20px; color:#000000'>", "gm"), "");
                 var endPos = textHTML.lastIndexOf("</span>");
